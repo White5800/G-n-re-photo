@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>genere votre photo</title>
+</head>
+<body>
+    <h1>GÉNERE VOTRE PHOTO</h1>
+    <video id="video" width="640" height="480" autoplay></video>
+    <button id="capture">Capturer une image</button>
+
+    <script>
+        const video = document.getElementById('video');
+
+        // Demander l'accès à la caméra
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then((stream) => {
+                video.srcObject = stream;
+            })
+            .catch((error) => {
+                console.error('Erreur lors de l\'accès à la caméra:', error);
+            });
+
+        // Capturer une image lorsque le bouton est cliqué
+        document.getElementById('capture').addEventListener('click', () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = 640;
+            canvas.height = 480;
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageData = canvas.toDataURL('image/png');
+
+            // Envoyer l'image au serveur
+            fetch('/upload', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ image: imageData })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Image envoyée avec succès:', data);
+            })
+            .catch(error => {
+                console.error('Erreur lors de l\'envoi de l\'image:', error);
+            });
+        });
+    </script>
+</body>
+</html>
